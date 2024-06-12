@@ -3,6 +3,22 @@ import puppeteer from 'puppeteer';
 import fs from 'fs';
 import { createObjectCsvWriter } from 'csv-writer';
 
+function getFormattedTimestamp() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  // Format: YYYYMMDD_HHMMSS
+  return `${year}-${month}-${day}_@${hours}:${minutes}:${seconds}`;
+}
+// Use the formatted timestamp to create a unique file name
+const timestamp = getFormattedTimestamp();
+const path = `testcsv_${timestamp}.csv`;
+
 const getQuotes = async () => {
   const browser = await puppeteer.launch({
     headless: false,
@@ -13,8 +29,9 @@ const getQuotes = async () => {
   const page = await browser.newPage();
 
   await page.goto(
-    'https://www.bhphotovideo.com/c/search?q=speedlite%20430EX-III&sts=ma',
-    // 'https://www.bhphotovideo.com/c/buy/35mm-film/ci/39569/cp/1731%2B9954%2B39569/pn/6',
+    // 'https://www.bhphotovideo.com/c/search?q=speedlite%20430EX-III&sts=ma',
+    // 'https://www.bhphotovideo.com/c/products/35mm-film/ci/39569?filters=fct_number-of-rolls_5574%3A1-roll',
+    'https://www.bhphotovideo.com/c/buy/35mm-film/ci/39569/cp/1731%2B9954%2B39569/pn/6',
     {
       waitUntil: 'domcontentloaded',
     }
@@ -23,7 +40,7 @@ const getQuotes = async () => {
   // Instanciate the writer object
 
   const writer = createObjectCsvWriter({
-    path: 'testcsv.csv',
+    path: path,
     header: [
       { id: 'name', title: 'NAME' },
       { id: 'price', title: 'PRICE' },
