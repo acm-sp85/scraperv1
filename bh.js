@@ -12,7 +12,6 @@ function getFormattedTimestamp() {
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
 
-  // Format: YYYYMMDD_HHMMSS
   return `${year}-${month}-${day}_@${hours}:${minutes}:${seconds}`;
 }
 // Use the formatted timestamp to create a unique file name
@@ -31,7 +30,7 @@ const getQuotes = async () => {
   await page.goto(
     // 'https://www.bhphotovideo.com/c/search?q=speedlite%20430EX-III&sts=ma',
     // 'https://www.bhphotovideo.com/c/products/35mm-film/ci/39569?filters=fct_number-of-rolls_5574%3A1-roll',
-    'https://www.bhphotovideo.com/c/buy/35mm-film/ci/39569/cp/1731%2B9954%2B39569/pn/6',
+    'https://www.bhphotovideo.com/c/buy/35mm-film/ci/39569',
     {
       waitUntil: 'domcontentloaded',
     }
@@ -55,10 +54,10 @@ const getQuotes = async () => {
   async function autoScroll(page) {
     await page.evaluate(async () => {
       await new Promise((resolve, reject) => {
-        var totalHeight = 0;
-        var distance = 100;
-        var timer = setInterval(() => {
-          var scrollHeight = document.body.scrollHeight;
+        let totalHeight = 0;
+        let distance = 100;
+        let timer = setInterval(() => {
+          let scrollHeight = document.body.scrollHeight;
           window.scrollBy(0, distance);
           totalHeight += distance;
 
@@ -119,8 +118,22 @@ const getQuotes = async () => {
   });
 
   // CHECK IF THERE IS A NEXT BUTTON
-  // await page.waitForSelector('[data-selenium="listingPagingPageNext"]');
-  // await page.click('[data-selenium="listingPagingPageNext"]');
+  // const waitForNext = () => {
+  //   page.click('[data-selenium=listingPagingPageNext]');
+  // };
+  // while (await page.$('[data-selenium=listingPagingPageNext]')) {
+  //   setTimeout(waitForNext, 5000);
+  // }
+
+  while (
+    // in Adorama's case we need to add a condition to exit the loop when the button is dissabled (at end of pagination)
+    await page.waitForSelector('[data-selenium=listingPagingPageNext]')
+  ) {
+    await autoScroll(page);
+    console.log('Page loaded!');
+
+    await page.click('[data-selenium=listingPagingPageNext]');
+  }
 
   // DISPLAY THE QUOTES
   console.log(quotes);
