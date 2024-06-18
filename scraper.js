@@ -1,5 +1,38 @@
 import puppeteer from 'puppeteer';
 import { scrapePage } from './scraperAdorama.js';
+import fs from 'fs';
+import { createObjectCsvWriter } from 'csv-writer';
+
+function getFormattedTimestamp() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}_@${hours}:${minutes}:${seconds}`;
+}
+// Use the formatted timestamp to create a unique file name
+const timestamp = getFormattedTimestamp();
+const path = `testcsv_${timestamp}.csv`;
+
+// Instanciate the writer object
+
+let writer = createObjectCsvWriter({
+  path: path,
+  header: [
+    { id: 'description', title: 'DESCRIPTION' },
+    { id: 'brand', title: 'BRAND' },
+    { id: 'price', title: 'PRICE' },
+    { id: 'imageUrl', title: 'IMAGEURL' },
+    { id: 'category', title: 'CATEGORY' },
+    { id: 'SKU', title: 'SKU' },
+  ],
+  append: true,
+});
+
 (async () => {
   const browser = await puppeteer.launch({
     headless: false,
@@ -59,6 +92,20 @@ import { scrapePage } from './scraperAdorama.js';
       let quotes = await scrapePage(page);
       console.log('Page loaded!');
       console.log(`Data from ${url} @Page ${pageCount}: `, quotes);
+
+      // WRITTING DATA INTO A JSON FILE
+      let records = quotes;
+      fs.writeFile('data.json', JSON.stringify(quotes), (err) => {
+        if (err) throw err;
+        console.log('Data written successfully');
+      });
+
+      // WRITTING DATA INTO A CSV FILE
+      writer
+        .writeRecords(records) // returns a promise
+        .then(() => {
+          console.log('...Done');
+        });
       await page.click('[class=PaginationProductsList_nextLink__GE_q7]');
     }
     ////////////////////////////////
