@@ -1,5 +1,4 @@
-export async function scrapePage(page) {
-
+export async function scraperPage(page) {
   return await page.evaluate(() => {
     // GRABBING ALL ITEMS INSIDE OF THE COMPONENT
     const quoteList = document.querySelectorAll('.Products_productWr__lP23N');

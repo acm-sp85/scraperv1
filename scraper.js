@@ -1,7 +1,8 @@
 import puppeteer from 'puppeteer';
-import { scrapePage } from './scraperAdorama.js';
+import { scraperPage } from './scraperAdorama.js';
 import fs from 'fs';
 import { createObjectCsvWriter } from 'csv-writer';
+import cron from 'node-cron';
 
 function getFormattedTimestamp() {
   const now = new Date();
@@ -15,8 +16,8 @@ function getFormattedTimestamp() {
   return `${year}-${month}-${day}_@${hours}:${minutes}:${seconds}`;
 }
 // Use the formatted timestamp to create a unique file name
-const timestamp = getFormattedTimestamp();
-const path = `testcsv_${timestamp}.csv`;
+let timestamp = getFormattedTimestamp();
+let path = `testcsv_${timestamp}.csv`;
 
 // Instanciate the writer object
 
@@ -42,8 +43,13 @@ let writer = createObjectCsvWriter({
 
   // List of URLs or navigation logic
   const urls = [
-    'https://www.adorama.com/l/Used/Photography/Lenses/Rangefinder-Lenses',
+    // 'https://www.adorama.com/l/Photography/Film-and-Darkroom-Equipment/Film',
+    // 'https://www.adorama.com/l/Used/Photography/Lenses/Rangefinder-Lenses',
     // 'https://www.adorama.com/l/Photography/Film-and-Darkroom-Equipment/Lomography~Fujifilm~Film',
+    // 35mm + 120 in stock:
+    'https://www.adorama.com/l/Photography/Film-and-Darkroom-Equipment/Film?sel=Film-Type_B-and-W-Monochrome_Daylight-with-FX_Tungsten_Black-and-White-Reversal_Color_Slide_Daylight_Infrared-Film%7CFilter-By_In-Stock',
+    // motion: 8mm + 16mm
+    'https://www.adorama.com/l/Photography/Film-and-Darkroom-Equipment/Film?sel=Film-Type_16mm_Super-8',
   ];
 
   for (const url of urls) {
@@ -89,7 +95,7 @@ let writer = createObjectCsvWriter({
       // Call the scrapePage function
       pageCount++;
       await autoScroll(page);
-      let quotes = await scrapePage(page);
+      let quotes = await scraperPage(page);
       console.log('Page loaded!');
       console.log(`Data from ${url} @Page ${pageCount}: `, quotes);
 
@@ -109,68 +115,9 @@ let writer = createObjectCsvWriter({
       await page.click('[class=PaginationProductsList_nextLink__GE_q7]');
     }
     ////////////////////////////////
-
-    // You can now process the `quotes` as needed, e.g., save to a database or a file
-    // console.log(`Data from ${url}:`, quotes);
   }
 
   await browser.close();
 })();
 
-////////////////////////////////OLD
-// const getQuotes = async () => {
-//   const browser = await puppeteer.launch({
-//     headless: false,
-//     defaultViewport: null,
-//     // devtools: true,
-//   });
-// Open a new page
-//   const page = await browser.newPage();
 
-//   await page.goto(
-//     'https://www.adorama.com/l/Used/Photography/Lenses/Rangefinder-Lenses',
-//     // 'https://www.adorama.com/l/Photography/Film-and-Darkroom-Equipment/Lomography~Fujifilm~Film',
-
-//     {
-//       waitUntil: 'domcontentloaded',
-//     }
-//   );
-
-//   // await page.evaluate(() => {
-//   //   debugger;
-//   // });
-
-//   // CHECK IF THERE IS A NEXT BUTTON AND CLICK IT
-//   // ///////////THIS IS THE PAGINATION
-//   while (
-//     (await page.waitForSelector(
-//       '[class=PaginationProductsList_nextLink__GE_q7]'
-//     )) &&
-//     (await page.$eval(
-//       '[class=PaginationProductsList_nextLink__GE_q7]',
-//       (element) => element.getAttribute('href')
-//     )) !== '/'
-//   ) {
-//     await autoScroll(page);
-//     console.log('Page loaded!');
-//     console.log(quotes);
-
-//     await page.click('[class=PaginationProductsList_nextLink__GE_q7]');
-//   }
-//   ////////////////////////////////
-//   console.log('loop exited!!');
-
-//   // DISPLAY THE QUOTES
-//   // console.log(quotes);
-//   await browser.close();
-//   // WRITTING DATA INTO A JSON FILE
-//   // fs.writeFile('data.json', JSON.stringify(quotes), (err) => {
-//   //   if (err) throw err;
-//   //   console.log('Data written successfully');
-//   // });
-// };
-
-// // Start the scraping
-// getQuotes();
-
-////////////////////////////////OLD
